@@ -23,6 +23,23 @@ def add_student():
     })
 
 
+# Bulk Add Students
+@students_routes.route("/students/bulk", methods=["POST"])
+def bulk_add_students():
+    data = request.json
+    try:
+        response = supabase.table("students").insert(data["students"]).execute()
+        return jsonify({
+            "message": f"{len(data['students'])} Students imported successfully",
+            "data": response.data
+        })
+    except Exception as e:
+        return jsonify({
+            "message": "Failed to import students",
+            "error": str(e)
+        }), 400
+
+
 # Get All Students
 @students_routes.route("/students", methods=["GET"])
 def get_students():

@@ -165,37 +165,37 @@ function handleLogin(e) {
             password: password
         })
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.message === 'Login successful') {
-            // Check if role matches
-            if (data.user.role === role) {
-                state.user = { 
-                    role: data.user.role, 
-                    username: data.user.name,
-                    email: data.user.email,
-                    id: data.user.id
-                };
-                
-                showToast(`Logged in successfully as ${role}`);
-                fetchSchools();
-                showView('view-school-select');
+        .then(response => response.json())
+        .then(data => {
+            if (data.message === 'Login successful') {
+                // Check if role matches
+                if (data.user.role === role) {
+                    state.user = {
+                        role: data.user.role,
+                        username: data.user.name,
+                        email: data.user.email,
+                        id: data.user.id
+                    };
+
+                    showToast(`Logged in successfully as ${role}`);
+                    fetchSchools();
+                    showView('view-school-select');
+                } else {
+                    showToast(`Role mismatch. You are registered as ${data.user.role}`, 'error');
+                }
             } else {
-                showToast(`Role mismatch. You are registered as ${data.user.role}`, 'error');
+                showToast(data.message || 'Login failed', 'error');
             }
-        } else {
-            showToast(data.message || 'Login failed', 'error');
-        }
-    })
-    .catch(error => {
-        console.error('Login error:', error);
-        showToast('Connection error. Please try again.', 'error');
-    })
-    .finally(() => {
-        // Reset button state
-        submitBtn.innerHTML = originalText;
-        submitBtn.disabled = false;
-    });
+        })
+        .catch(error => {
+            console.error('Login error:', error);
+            showToast('Connection error. Please try again.', 'error');
+        })
+        .finally(() => {
+            // Reset button state
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        });
 }
 
 function logout() {
@@ -235,25 +235,25 @@ function handleRegister(e) {
             role: role
         })
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.message === 'User registered successfully') {
-            showToast('Registration successful! You can now login.');
-            closeModal('register-modal');
-            document.getElementById('register-form').reset();
-        } else {
-            showToast(data.message || 'Registration failed', 'error');
-        }
-    })
-    .catch(error => {
-        console.error('Registration error:', error);
-        showToast('Connection error. Please try again.', 'error');
-    })
-    .finally(() => {
-        // Reset button state
-        submitBtn.innerHTML = originalText;
-        submitBtn.disabled = false;
-    });
+        .then(response => response.json())
+        .then(data => {
+            if (data.message === 'User registered successfully') {
+                showToast('Registration successful! You can now login.');
+                closeModal('register-modal');
+                document.getElementById('register-form').reset();
+            } else {
+                showToast(data.message || 'Registration failed', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Registration error:', error);
+            showToast('Connection error. Please try again.', 'error');
+        })
+        .finally(() => {
+            // Reset button state
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        });
 }
 
 // --- MODULE: SCHOOL SELECTION ---
@@ -316,7 +316,7 @@ function continueToDashboard() {
 
     showView('app-shell');
     switchNav('dashboard');
-    
+
     // Fetch students for this school
     fetchStudents();
 }
@@ -349,29 +349,29 @@ function handleAddSchool(e) {
             academic_year: academicYear
         })
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.message === 'School added successfully') {
-            // Refresh schools list
-            fetchSchools();
-            
-            closeModal('add-school-modal');
-            showToast("School added successfully");
-            document.getElementById('add-school-form').reset();
-            document.getElementById('school-file-info').classList.add('hidden');
-        } else {
-            showToast(data.message || 'Failed to add school', 'error');
-        }
-    })
-    .catch(error => {
-        console.error('Add school error:', error);
-        showToast('Connection error. Please try again.', 'error');
-    })
-    .finally(() => {
-        // Reset button state
-        submitBtn.innerHTML = originalText;
-        submitBtn.disabled = false;
-    });
+        .then(response => response.json())
+        .then(data => {
+            if (data.message === 'School added successfully') {
+                // Refresh schools list
+                fetchSchools();
+
+                closeModal('add-school-modal');
+                showToast("School added successfully");
+                document.getElementById('add-school-form').reset();
+                document.getElementById('school-file-info').classList.add('hidden');
+            } else {
+                showToast(data.message || 'Failed to add school', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Add school error:', error);
+            showToast('Connection error. Please try again.', 'error');
+        })
+        .finally(() => {
+            // Reset button state
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        });
 }
 
 // --- MODULE: DASHBOARD NAVIGATION ---
@@ -409,14 +409,14 @@ function fetchStudents() {
         console.log('No active school selected');
         return;
     }
-    
+
     fetch(`http://localhost:5000/students/school/${state.activeSchool.id}`)
         .then(response => response.json())
         .then(data => {
             if (Array.isArray(data)) {
                 students = data.map(student => ({
                     id: student.id,
-                    sNo: student.id, // Using ID as roll number for now
+                    sNo: student.sr_no || student.id.toString().substring(0, 8),
                     std: student.std || '',
                     name: student.student_name,
                     phone: student.mobile_no || '',
@@ -473,46 +473,46 @@ function handleAddStudent(e) {
             mobile_no: phone
         })
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.message === 'Student added successfully') {
-            // if items were selected create an invoice immediately
-            if (Object.keys(studentCart).length > 0) {
-                let subtotal = 0;
-                Object.keys(studentCart).forEach(idStr => {
-                    const item = posItems.find(i => i.id === parseInt(idStr));
-                    subtotal += item.price * studentCart[idStr];
-                });
-                const inv = {
-                    id: genId(),
-                    studentName: name,
-                    school: state.activeSchool ? state.activeSchool.name : '',
-                    amount: subtotal,
-                    status: "Paid"
-                };
-                invoices.unshift(inv);
-                saveData();
-                showToast("Student added and invoice generated");
-            } else {
-                showToast("Student added successfully");
-            }
+        .then(response => response.json())
+        .then(data => {
+            if (data.message === 'Student added successfully') {
+                // if items were selected create an invoice immediately
+                if (Object.keys(studentCart).length > 0) {
+                    let subtotal = 0;
+                    Object.keys(studentCart).forEach(idStr => {
+                        const item = posItems.find(i => i.id === parseInt(idStr));
+                        subtotal += item.price * studentCart[idStr];
+                    });
+                    const inv = {
+                        id: genId(),
+                        studentName: name,
+                        school: state.activeSchool ? state.activeSchool.name : '',
+                        amount: subtotal,
+                        status: "Paid"
+                    };
+                    invoices.unshift(inv);
+                    saveData();
+                    showToast("Student added and invoice generated");
+                } else {
+                    showToast("Student added successfully");
+                }
 
-            closeModal('add-student-modal');
-            renderStudentsTable();
-            fetchStudents(); // Refresh students from backend
-        } else {
-            showToast(data.message || 'Failed to add student', 'error');
-        }
-    })
-    .catch(error => {
-        console.error('Add student error:', error);
-        showToast('Connection error. Please try again.', 'error');
-    })
-    .finally(() => {
-        // Reset button state
-        submitBtn.innerHTML = originalText;
-        submitBtn.disabled = false;
-    });
+                closeModal('add-student-modal');
+                renderStudentsTable();
+                fetchStudents(); // Refresh students from backend
+            } else {
+                showToast(data.message || 'Failed to add student', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Add student error:', error);
+            showToast('Connection error. Please try again.', 'error');
+        })
+        .finally(() => {
+            // Reset button state
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        });
 }
 
 function mockImportStudents() {
@@ -521,19 +521,116 @@ function mockImportStudents() {
         alert("Please select an Excel file first!");
         return;
     }
-    showToast("Importing students processing...");
-    setTimeout(() => {
-        const newStudents = [
-            { id: Date.now() + 1, sNo: "004", std: "1st A", name: "Ravi Kumar", phone: "9000000001", parent: "Rakesh Kumar", address: "City Center", house: "Red", gender: "Male" },
-            { id: Date.now() + 2, sNo: "005", std: "2nd B", name: "Sonia Singh", phone: "9000000002", parent: "Ajay Singh", address: "Viman Nagar", house: "Blue", gender: "Female" }
-        ];
-        students = [...students, ...newStudents];
-        saveData();
-        showToast("Student data imported successfully");
-        document.getElementById('bulk-student-file').value = "";
-        document.getElementById('bulk-file-display').classList.add('hidden');
-        switchNav('students-list');
-    }, 1000);
+
+    if (!state.activeSchool) {
+        alert("Please select a school first!");
+        return;
+    }
+
+    const file = fileNode.files[0];
+    const reader = new FileReader();
+
+    // UI Update
+    const btn = document.getElementById('btn-import-students');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="ph ph-spinner"></i> Importing...';
+    btn.disabled = true;
+
+    reader.onload = function (e) {
+        try {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+
+            // Assuming first sheet is relevant
+            const firstSheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[firstSheetName];
+
+            // Convert to JSON
+            const json = XLSX.utils.sheet_to_json(worksheet);
+
+            if (!json || json.length === 0) {
+                showToast("The Excel file is empty or invalid.");
+                resetBtn();
+                return;
+            }
+
+            // Map standard / possible headers to unified format
+            const studentsPayload = json.map(row => {
+                // Extract from exact headers matching the screenshot
+                const srNo = row['Sr. No.'] || row['sr_no'] || row['Sr.No.'];
+                const name = row['Students Name'] || row['Student Name'] || row['Name'] || row['student_name'] || '';
+                const std = row['Std'] || row['Standard'] || row['Class'] || row['std'] || '';
+                const phone = row['Mobile No.'] || row['Phone Number'] || row['Mobile'] || row['mobile_no'] || '';
+                // parent name not in spreadsheet, optionally grab it if present
+                const parent = row['Parent Name'] || row['Parent'] || row['parent_name'] || '';
+
+                if (!name) return null; // Skip invalid rows
+
+                // Parse srNo as int if possible
+                const parsedSrNo = srNo && !isNaN(parseInt(srNo)) ? parseInt(srNo) : null;
+
+                return {
+                    school_id: state.activeSchool.id,
+                    sr_no: parsedSrNo,
+                    student_name: String(name).trim(),
+                    std: String(std).trim(),
+                    parent_name: parent ? String(parent).trim() : null,
+                    mobile_no: String(phone).trim()
+                };
+            }).filter(s => s !== null);
+
+            if (studentsPayload.length === 0) {
+                showToast("No valid student data found. Check column names.");
+                resetBtn();
+                return;
+            }
+
+            // Send to backend
+            fetch('http://localhost:5000/students/bulk', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ students: studentsPayload })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.message && data.message.includes('successfully')) {
+                        showToast(data.message);
+                        document.getElementById('bulk-student-file').value = "";
+                        document.getElementById('bulk-file-display').classList.add('hidden');
+
+                        // Refresh student list from server
+                        fetchStudents();
+                        switchNav('students-list');
+                    } else {
+                        showToast(data.message || 'Failed to import students', 'error');
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    showToast("Connection error. Please try again.", "error");
+                })
+                .finally(() => resetBtn());
+
+        } catch (err) {
+            console.error("Excel parse error:", err);
+            showToast("Failed to parse Excel file", "error");
+            resetBtn();
+        }
+    };
+
+    reader.onerror = function () {
+        showToast("Error reading file", "error");
+        resetBtn();
+    };
+
+    reader.readAsArrayBuffer(file);
+
+    function resetBtn() {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
 }
 
 // Dropdown toggle function
@@ -544,7 +641,7 @@ function toggleDropdown(studentId) {
             dropdown.classList.remove('show');
         }
     });
-    
+
     // Toggle current dropdown
     const currentDropdown = document.getElementById(`dropdown-${studentId}`);
     currentDropdown.classList.toggle('show');
@@ -554,19 +651,19 @@ function toggleDropdown(studentId) {
 function showStudentQR(studentId) {
     const student = students.find(s => s.id === studentId);
     if (!student) return;
-    
+
     // Close dropdown
     document.getElementById(`dropdown-${studentId}`).classList.remove('show');
-    
+
     // Set QR modal content
     document.getElementById('qr-student-name').textContent = student.name;
     document.getElementById('qr-student-details').textContent = `Class: ${student.std} | Phone: ${student.phone}`;
     document.getElementById('qr-amount').textContent = '₹0.00';
-    
+
     // Generate QR code with student details
     const qrData = `Student: ${student.name}\nClass: ${student.std}\nPhone: ${student.phone}\nSchool: ${state.activeSchool.name}`;
     generateQRCode(qrData);
-    
+
     openModal('qr-modal');
 }
 
@@ -576,7 +673,7 @@ function generateQRCode(data) {
     // In a real application, you would use a QR code library like qrcode.js
     // For now, we'll just show the QR icon
     console.log('QR Data:', data);
-    
+
     // You could integrate with a real QR code library here
     // Example: 
     // QRCode.toCanvas(document.getElementById('qr-canvas'), data, function (error) {
@@ -585,7 +682,7 @@ function generateQRCode(data) {
 }
 
 // Close dropdowns when clicking outside
-document.addEventListener('click', function(event) {
+document.addEventListener('click', function (event) {
     if (!event.target.closest('.dropdown')) {
         document.querySelectorAll('.dropdown').forEach(dropdown => {
             dropdown.classList.remove('show');
@@ -981,12 +1078,12 @@ function showPaperBill(invoiceId, status) {
 
 // Function to convert number to words
 function numberToWords(num) {
-    const a = ['','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten','Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen','Seventeen','Eighteen','Nineteen'];
-    const b = ['', '', 'Twenty','Thirty','Forty','Fifty','Sixty','Seventy','Eighty','Ninety'];
-    
+    const a = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+    const b = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+
     if ((num = num.toString()).length > 9) return 'overflow';
     const n = ('000000000' + num).substr(-9).match(/^(\d{2})(\d{2})(\d{2})(\d{1})(\d{2})$/);
-    if (!n) return; 
+    if (!n) return;
     let str = '';
     str += (n[1] != 0) ? (a[Number(n[1])] || b[n[1][0]] + ' ' + a[n[1][1]]) + 'Crore ' : '';
     str += (n[2] != 0) ? (a[Number(n[2])] || b[n[2][0]] + ' ' + a[n[2][1]]) + 'Lakh ' : '';
